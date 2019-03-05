@@ -1,4 +1,6 @@
-include ./doc/config.mk
+#richiama i settings da config.mk ma se serve puoi incollare i settings direttamente quì sopra
+
+include config.mk
 
 # Generally should not need to edit below this line
 
