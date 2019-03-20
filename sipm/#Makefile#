@@ -1,0 +1,30 @@
+CC := g++ # This is the main compiler
+SRCDIR := src
+BUILDDIR := build
+TARGET := bin/hello
+
+SRCEXT := cpp
+SOURCES :=$(shell find $(SRCDIR) -type f -name hello.$(SRCEXT))
+OBJECTS :=$(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
+CFLAGS := -O #-g #-Wall `root-config --cflags`
+LIB :=  #-pthread -lmongoclient -L lib -lboost_thread-mt -lboost_filesystem-mt -lboost_system-mt
+INC := -I include
+
+Hello: $(OBJECTS)
+	@echo "$(SOURCES)"
+	@echo "$(OBJECTS)"
+	@echo " $(CC) $(CFLAGS) -o $(TARGET) $(OBJECTS)"; $(CC) $(CFLAGS) -o $(OBJECTS)
+
+clean:
+	@echo " Cleaning...";
+	@echo " $(RM) -r $(BUILDDIR) $(TARGET)"; $(RM) -r $(BUILDDIR) $(TARGET)
+
+# Tests
+tester:
+	$(CC) $(CFLAGS) test/tester.cpp $(INC) $(LIB) -o bin/tester
+
+# Spikes
+ticket:
+	$(CC) $(CFLAGS) spikes/ticket.cpp $(INC) $(LIB) -o bin/ticket
+
+.PHONY: clean

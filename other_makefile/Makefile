@@ -6,9 +6,9 @@ BUILDDIR := build
 TARGET := bin/sipm_analysis
  
 SRCEXT := cpp
-SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
-OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
-CFLAGS := -g -Wall `root-config --cflags`
+SOURCES := hello.cpp # $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
+OBJECTS := hello.o # $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
+CFLAGS := -g -Wall #`root-config --cflags`
 LIB :=  #-pthread -lmongoclient -L lib -lboost_thread-mt -lboost_filesystem-mt -lboost_system-mt
 INC := -I include
 
