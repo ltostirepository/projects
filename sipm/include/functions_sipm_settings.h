@@ -8,9 +8,6 @@
 #ifndef functions_sipm_settings_h
 #define functions_sipm_settings_h
 
-#include "../include/sipm/general_lib.h"
-#include "../include/sipm/Peaks.h"
-
 // settings
 void ScaleGraph( TGraph* g, Double_t scale);
 Double_t* GenerateLogBinning(int nbins, float min, float max);

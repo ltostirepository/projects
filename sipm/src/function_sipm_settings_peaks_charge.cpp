@@ -1,6 +1,6 @@
-#include "../include/sipm/general_lib.h"
-#include "../include/sipm/Peaks.h"
-#include "../include/sipm/functions_sipm_Peaks_charge.h"
+#include "general_lib.h"
+#include "Peaks.h"
+#include "functions_sipm_Peaks_charge.h"
 
 using namespace std;
 

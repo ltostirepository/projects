@@ -1,6 +1,6 @@
-#include "../include/sipm/general_lib.h"
-#include "../include/sipm/Peaks.h"
-#include "../include/sipm/functions_sipm_smoothing_and_DLED.h"
+#include "general_lib.h"
+#include "Peaks.h"
+#include "functions_sipm_smoothing_and_DLED.h"
 
 using namespace std;
 

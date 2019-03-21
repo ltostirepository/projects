@@ -8,9 +8,6 @@
 #ifndef functions_sipm_Peaks_research_h
 #define functions_sipm_Peaks_research_h
 
-#include "../include/sipm/general_lib.h"
-#include "../include/sipm/Peaks.h"
-
 //Peaks research
 void initpeaks( Peaks *p );
 void FindPeaks( TGraph* g, Peaks *peaks, Double_t threshold, bool average, bool fixleftside );

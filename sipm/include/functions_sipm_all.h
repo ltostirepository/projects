@@ -8,8 +8,6 @@
 #ifndef functions_sipm_h
 #define functions_sipm_h
 
-#include "../include/sipm/general_lib.h"
-#include "../include/sipm/Peaks.h"
 
 // settings
 void ScaleGraph( TGraph* g, Double_t scale);
@@ -30,7 +28,7 @@ void RemovePeaks( TGraph *g, TGraph **gnopeak, Peaks *peaks, Double_t tleft=40e-
 
 
 //Peaks charge
-void integra_picco( TGraph *g, Peaks *peaksdled,Peaks *peaks, Double_t ped_signal , Double_t time_before, Double_t time_after, Double_t sampling_time_ns)
+void integra_picco( TGraph *g, Peaks *peaksdled,Peaks *peaks, Double_t ped_signal , Double_t time_before, Double_t time_after, Double_t sampling_time_ns);
 Bool_t GoodCharge( Peaks* p, Short_t index);
 
 //useless
@@ -38,7 +36,7 @@ Double_t media_colonna(TH2F *histo,int colonna);
 void picco_medio(TH2F *histo2d,TGraph *graph);
 
 // PDF printing
-void PrintCanvas( TObjArray* arr, string path, string pdfname, bool pdfonly=false );
+void PrintCanvas( TObjArray* arr, std::string path, std::string pdfname, bool pdfonly=false );
 
 // principal function
 void drawnolaser( const  char* treefilename = "f_in_only_tgraphs.root",int ich=0, bool invert=false, int imin=-999, int imax=-999,bool print=false ,Double_t dt_shift = 8e-10);

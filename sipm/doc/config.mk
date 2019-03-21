@@ -1,7 +1,7 @@
 #### PROJECT SETTINGS ####
 
 # The name of the executable to be created
-BIN_NAME := hello_script
+BIN_NAME := hello_script_sipm
 
 # Compiler used
 CXX ?= g++
@@ -25,10 +25,10 @@ RCOMPILE_FLAGS = -D NDEBUG
 DCOMPILE_FLAGS = -D DEBUG
 
 # Add additional include paths
-INCLUDES = -I $(SRC_PATH)
+INCLUDES = -I./include -I$(ROOTSYS)/include
 
 # General linker settings
-LINK_FLAGS =
+LINK_FLAGS = -L$(ROOTSYS)/lib
 
 # Additional release-specific linker settings
 RLINK_FLAGS =
