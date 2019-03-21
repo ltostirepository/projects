@@ -26,6 +26,9 @@ ifneq ($(LIBS),)
 	LINK_FLAGS += $(shell pkg-config --libs $(LIBS))
 endif
 
+	COMPILE_FLAGS += $(shell root-config --cflags)
+	LINK_FLAGS += $(shell root-config --libs)
+
 # Verbose option, to output compile and link commands
 export V := false
 export CMD_PREFIX := @
