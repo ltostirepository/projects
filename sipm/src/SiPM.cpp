@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
     (void)argv;
     
     cout<<"........INIZIALIZING PROGRAM........\n";
-    drawnolaser("f_in_only_tgraphs.root",0, false,-999,-999,false ,8e-10);
+    drawnolaser("f_in_only_tgraphs.root",-999,-999,false ,8e-10);
     cout<< ".......COMPLETED RUN.......\n" <<endl;
     return 0;
 }

@@ -57,8 +57,8 @@ void FindPeaks( TGraph* g, Peaks *peaks, Double_t threshold, bool average, bool 
             Double_t minside=Y[xminside];
             int xmaxside=localxmax+11;//+11
             while( xmaxside<g->GetN()-1 && Y[xmaxside]>Y[xmaxside+1] ) xmaxside++;
-            Double_t maxside=Y[xmaxside];
-            Double_t ave = 0.5*(minside+maxside);
+            //Double_t maxside=Y[xmaxside];
+            //Double_t ave = 0.5*(minside+maxside);
             //if(debug) cout<<"prova3\n";
             //fill peaks structure
             peaks->N++;
@@ -141,7 +141,7 @@ void RemovePeaks( TGraph *g, TGraph **gnopeak, Peaks *peaks, Double_t tleft, Dou
         y[i]=g->GetY()[i];
     }
     //if (debug) cout<<"RemovePeaks - 0.1\n";
-    Double_t dx = (y[n-1]-y[0])/(n-1);
+    //Double_t dx = (y[n-1]-y[0])/(n-1);
     //if (debug) cout<<"RemovePeaks - 0.2\n";
     vector<Double_t> minxtoremove, maxxtoremove;
     minxtoremove.push_back(-1); maxxtoremove.push_back(tright); //always remove the first tright interval to avoid tails from peaks

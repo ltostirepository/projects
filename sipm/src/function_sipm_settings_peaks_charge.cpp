@@ -9,7 +9,7 @@ void integra_picco( TGraph *g, Peaks *peaksdled,Peaks *peaks, Double_t ped_signa
         Double_t carica_picco=0;
         int bin_before = (int)(time_before/sampling_time_ns);
         int bin_after =  (int)(time_after/sampling_time_ns);
-        Double_t tempo = peaksdled->t.at(i_carica);
+        //Double_t tempo = peaksdled->t.at(i_carica);
         //int bin_picco = (int)(tempo/sampling_time_ns);
         int bin_picco = peaksdled->xt.at(i_carica);
         //int running_bin;

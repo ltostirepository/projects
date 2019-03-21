@@ -11,7 +11,7 @@ using namespace std;
 
 int debug = 0;
 
-void drawnolaser( const  char* treefilename, int ich, bool invert, int imin, int imax, bool print ,Double_t dt_shift){
+void drawnolaser( const  char* treefilename, int imin, int imax, bool print ,Double_t dt_shift){
     
     cout<<"........START PROGRAM........\n";
     int status;
@@ -96,7 +96,6 @@ void drawnolaser( const  char* treefilename, int ich, bool invert, int imin, int
     Double_t *taxis = GenerateBinning(ntbins,-1e+2,1e+3);//-1e+2,5e+3
     Double_t *taxis_log = GenerateLogBinning(ntbins,1e-1,1e+3);//-1e+2,5e+3
     Int_t qbins = 1000;
-    Double_t *binaxis = GenerateBinning(1000,-400,1200);
     Double_t *qaxis = GenerateBinning(qbins,-20,200);
     Double_t *ttrgaxis = GenerateBinning(ntbins,90,105);
     Int_t nvbins=1000;
@@ -147,7 +146,6 @@ void drawnolaser( const  char* treefilename, int ich, bool invert, int imin, int
     
     
     TH1F *dt = new TH1F("dt","dt",ntbins,taxis_log);
-    TH1F *hgwfnopeaks = new TH1F("hgwfnopeaks","hgwfnopeaks",nvbins,vaxisdled);//300,-10,4);
     TH2F *prova_t_dt = new TH2F("prova_t_dt","prova tempi t_dt;t_v;dt_v",ntimebins,timeaxis,ntbins,taxis);
     TH2F *prova_t_dt_dled = new TH2F("prova_t_dt_dled","prova tempi t_dt_dled;t_dled;dt_dled",ntimebins,timeaxis,ntbins,taxis);
     TH2F *prova_tempi = new TH2F("prova_tempi","prova tempi;dt_v;dt_dled",ntbins,taxis,ntbins,taxis);
@@ -158,9 +156,7 @@ void drawnolaser( const  char* treefilename, int ich, bool invert, int imin, int
     TH2F *prova_N_dv_norm = new TH2F("prova_N_dv_norm","prova_N_dv_norm;dled ;N",nvbins,vaxisdled,1000,Naxis);//nvbins,vaxisdled,100,Naxis
     TH2F *prova_N_dv_2 = new TH2F("prova_N_dv_2","prova_N_dv_2;dled mV;N",nvbins,vaxisdled,1000,0,6);//,nvbins,vaxisdled
     TH2F *hVmaxdt = new TH2F("hVmaxdt","Scope waveform;#Delta T from previous peak (ns);Amplitude (mV)",ntbins,taxis_log,nvbins,vaxis);
-    TH2F *hVmaxdt_prova = new TH2F("hVmaxdt_prova","Scope waveform;#Delta T from previous peak (ns);Amplitude (mV)",ntbins,0.1,2000,1000,-4,20);
     TH2F *hVmaxdtdled = new TH2F("hVmaxdtdled","DLED waveform;#Delta T from previous peak (ns);Amplitude (mV)",ntbins,taxis_log,nvbins,vaxisdled);
-    TH2F *hVmaxdtdled_prova= new TH2F("hVmaxdtdled_prova","DLED waveform;#Delta T from previous peak (ns) time ;Amplitude (mV)",ntbins,2000,4500,1000,0,2);
     TH1F *hVnosig = new TH1F("hVnosig","V samples with no signal;Amplitude (mV)", nvbins,vaxisdled);//200,-10, 10);
     TH1F *hVnosigdled = new TH1F("hVnosigdled","V samples with no signal;DLED Amplitude (mV)",nvbins,-vaxisdledmax/5,vaxisdledmax/5);
     TH1F *hVmaxdled = new TH1F("hVmaxdled","DLED waveform;V peak (mV);Entries",nvbins,vaxisdled);
