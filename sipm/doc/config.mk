@@ -16,7 +16,7 @@ SRC_PATH = ./src
 LIBS =
 
 # General compiler flags
-COMPILE_FLAGS = -std=c++11 -Wall -Wextra -g -fPIC  
+COMPILE_FLAGS = -std=c++11 -Wall -Wextra -g -fPIC 
 
 # Additional release-specific flags
 RCOMPILE_FLAGS = -D NDEBUG
