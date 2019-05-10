@@ -5,13 +5,17 @@
 #include "functions_sipm_Peaks_charge.h"
 #include "functions_sipm_Peaks_research.h"
 #include "functions_sipm_print_and_trials.h"
-
+#include "function_sipm_search_threshold.h"
 
 using namespace std;
 
 int debug = 0;
 
 void drawnolaser( const  char* treefilename, int imin, int imax, bool print ,Double_t dt_shift){
+    
+    cout<<"........START TEST........\n";
+    
+    testRandom(500000000);
     
     cout<<"........START PROGRAM........\n";
     int status;
