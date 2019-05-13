@@ -10,6 +10,7 @@
 
 #include <stdio.h>
 #include <iostream>
+#include <cmath>
 #include "TMath.h"
 #include <math.h>
 #include "fstream"

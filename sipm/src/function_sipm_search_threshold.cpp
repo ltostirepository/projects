@@ -130,10 +130,84 @@ void create_Q(Double_t *q, Int_t N, Double_t *Q){
     }
     
 }
+*/
 
-void generate_data(Double_t Vmax){
+int factorial(int n){
+    return (n == 1 || n == 0) ? 1 : factorial(n - 1) * n;
+}
+
+Double_t poisson(Double_t lambda, int k){
     
+    return (Double_t)(exp(-((double)lambda))*pow(((double)lambda),k)/(double)factorial(k));
+    
+}
+
+void generate_data(Double_t V_1,Double_t sigma_sgn, Double_t sigma_noise, int_t N){
+    
+    TFile *f = new TFile("test_random_generate_data.root","RECREATE");
     // genera U[0, 1]
+    N_picchi = 5;
+    lambda = 0;
+    Double_t sections_prob_value[N_picchi];
+    Double_t sections_th[N_picchi];
+    int sections[N_picchi];
+    
+    TRandom3 *r1=new TRandom3();
+    TRandom3 *r2=new TRandom3();
+    TH1F *h = new TH1F("h1","TRandom",500,0,1);
+    
+    for(int i=0; i<N_picchi-1; i++){
+        
+        sections_prob_value[i] = poisson(lambda,i);
+        if (i==0){
+            section_th[N_picchi-1]=1;
+            section_th[0] = sections_prob_value[0];
+            
+        }
+        else{
+            section_th[i] = sections_prob_value[i] + sections_prob_value[i-1];
+        }
+        
+    }
+    
+    for(int i=0;i<N_picchi;i++){
+        sections[i]=0;
+    }
+    
+    for(int i=0;i<N;i++){
+        r1->Uniform(0,1));
+        
+        for(int k=0;k<N_picchi;k++){
+            if(r1<sections_prob_value[k]){
+                sections[k] += 1 ;
+                break;
+            }
+        }
+    }
+    
+    Double_t sigma;
+    for(int i = 0; i<N_picchi;i++){
+        
+        if (i==0){
+            sigma=sigma_noise;
+        }
+        else{
+            sigma=sigma_sgn;
+        }
+        for(int k = 0;k<sections[i];k++){
+            r1->Gaus(i*V_1,sigma);
+            if(r1<0){
+                k--;
+            }
+            else{
+                h->Fill(r1);
+            }
+        }
+    }
+    
+    f->Write();
+    
+    cout<<"END CREATE_DATA\n";
     
     // dividi in sezioni (prob di ogni picco) ; se x € sezione -> aumenta conteggio sezione
     
@@ -145,7 +219,7 @@ void generate_data(Double_t Vmax){
     
 }
 
-*/
+
 
 void testRandom(Int_t N) {
     
