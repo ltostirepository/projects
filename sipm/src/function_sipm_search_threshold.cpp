@@ -142,30 +142,32 @@ Double_t poisson(Double_t lambda, int k){
     
 }
 
-void generate_data(Double_t V_1,Double_t sigma_sgn, Double_t sigma_noise, int_t N){
+void generate_data(Double_t lambda, Double_t V_1,Double_t sigma_sgn, Double_t sigma_noise, Int_t N){
     
     TFile *f = new TFile("test_random_generate_data.root","RECREATE");
     // genera U[0, 1]
-    N_picchi = 5;
-    lambda = 0;
+    int N_picchi = 10;
+    cout<<" average value "<<lambda*V_1;
     Double_t sections_prob_value[N_picchi];
     Double_t sections_th[N_picchi];
+    Int_t N_histo=500;
     int sections[N_picchi];
     
     TRandom3 *r1=new TRandom3();
-    TRandom3 *r2=new TRandom3();
-    TH1F *h = new TH1F("h1","TRandom",500,0,1);
+    Double_t r;
+    TH1F *h = new TH1F("h1","TRandom",N_histo,0,V_1*N_picchi);
     
     for(int i=0; i<N_picchi-1; i++){
         
         sections_prob_value[i] = poisson(lambda,i);
         if (i==0){
-            section_th[N_picchi-1]=1;
-            section_th[0] = sections_prob_value[0];
+            sections_prob_value[N_picchi-1] = poisson(lambda,N_picchi-1);
+            sections_th[N_picchi-1]=1;
+            sections_th[0] = sections_prob_value[0];
             
         }
         else{
-            section_th[i] = sections_prob_value[i] + sections_prob_value[i-1];
+            sections_th[i] = sections_prob_value[i] + sections_th[i-1];
         }
         
     }
@@ -175,17 +177,31 @@ void generate_data(Double_t V_1,Double_t sigma_sgn, Double_t sigma_noise, int_t 
     }
     
     for(int i=0;i<N;i++){
-        r1->Uniform(0,1));
+        r=r1->Uniform(0,1);
         
         for(int k=0;k<N_picchi;k++){
-            if(r1<sections_prob_value[k]){
+            if(r<sections_th[k]){
                 sections[k] += 1 ;
                 break;
             }
         }
     }
+    int sum = 0;
+    if(sections[N_picchi-1]>N*sections_prob_value[N_picchi-1]*(1+0.05)){
+        
+        cout<<"\n\nwarning: too much signal in last gaussian function -> renormalization last peak\n";
+        sections[N_picchi-1]=N*sections_prob_value[N_picchi-1];
+        for(int i=0;i<N_picchi;i++){
+            sum+=sections[i];
+        }
+        cout<<"total number of events "<< sum <<" / "<<N<<" -> "<< ((N-sum)/(double)N)*100 <<"% error in distribution \n";
+        cout<<"NEW number of events : "<< sum <<" ; "<< (N-sum) <<" events lost\n\n";
+        h->SetBinContent(N_histo+1,(Double_t)(N-sum));
+        
+    }
     
     Double_t sigma;
+    
     for(int i = 0; i<N_picchi;i++){
         
         if (i==0){
@@ -194,13 +210,20 @@ void generate_data(Double_t V_1,Double_t sigma_sgn, Double_t sigma_noise, int_t 
         else{
             sigma=sigma_sgn;
         }
+        
+        cout<<"i*V_1,sigma "<<i*V_1<<" "<<sigma<<"\n";
+        cout<<"sections"<<"["<<i<<"]"<< sections[i]<<"\n";
+        cout<<"sections_prob_value"<<"["<<i<<"]"<< sections_prob_value[i]<<"\n";
+        cout<<"sections_th"<<"["<<i<<"]"<< sections_th[i]<<"\n";
+        
         for(int k = 0;k<sections[i];k++){
-            r1->Gaus(i*V_1,sigma);
-            if(r1<0){
+            
+            r=r1->Gaus(i*V_1,sigma);
+            if(r<0){
                 k--;
             }
             else{
-                h->Fill(r1);
+                h->Fill((Float_t)r);
             }
         }
     }

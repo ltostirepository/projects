@@ -36,7 +36,7 @@ using namespace std;
 
 int factorial(int n);
 Double_t poisson(Double_t lambda, int k);
-void generate_data(Double_t V_1,Double_t sigma_sgn, Double_t sigma_noise, int_t N);
+void generate_data(Double_t lambda, Double_t V_1,Double_t sigma_sgn, Double_t sigma_noise, Int_t N);
 void testRandom(Int_t nrEvents=500000000);
 
 #endif

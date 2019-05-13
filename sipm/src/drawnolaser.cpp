@@ -15,8 +15,10 @@ void drawnolaser( const  char* treefilename, int imin, int imax, bool print ,Dou
     
     cout<<"........START TEST........\n";
     
-    testRandom(500000000);
-    generate_data(3.0 ,1.0, 2.0, 500000000);
+    //testRandom(500000000);
+    generate_data(1,3.0 ,1.0, 3.0, 500000000);//lambda,V_1,sigma_sgn,sigma_noise,N
+    
+    exit(1);
     
     cout<<"........START PROGRAM........\n";
     int status;
