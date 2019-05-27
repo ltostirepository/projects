@@ -9,31 +9,72 @@
 
 using namespace std;
 
-/*
-Double_t Search_threshold(){
-    
-    Double_t th;
 
+Double_t Search_threshold(TH1D *h){
+ 
+    cout<<"in1\n";
+    Double_t th = 0;
+    TFile *f = new TFile("test_threshold.root","RECREATE");
+    h->Write();
     // definisci variabili dei punti successivi
     
+    cout<<"in2\n";
     
-    // TEST genera finto DLED per prove
+ // ####### (per ora prendi direttamente l'histo) prendi grafico DLED e costruisci histo punti (no cerca picchi) escludi valori negativi e nulli
+    Int_t entries_h=h->GetEntries();
+    Int_t entries_h_1= 0;
+    entries_h_1= entries_h +1;
     
-    // prendi grafico DLED e costruisci histo punti (no cerca picchi) escludi valori negativi e nulli
-    
-    
+    cout<<"in3\n";
     // costruisci funz prob h_i*(2/V_max^2)*V_i
-    
-    // crea valori p_i e q_i=1-p_i per ogni tensione V_i = [0;Vmax]
-    
-    // crea valori ri
+    Double_t p[entries_h_1]; // imposta dim dall'histo
+    Double_t q[entries_h_1]; // imposta dim dall'histo
+    Double_t r[entries_h_1]; // imposta dim dall'histo
+    cout<<"in4\n";
+    Double_t R[entries_h_1]; // imposta dim dall'histo
+    Double_t Q[entries_h_1]; // imposta dim dall'histo
+    cout<<"in5\n";
+    Double_t V_histo[entries_h_1]; // imposta dim dall'histo
+    Double_t Vmax = h->GetBinCenter(entries_h); //così V_max dipende dall'histo (devi scorrere il vettore e trovare il più grande utile)
+    cout<<"in\n";
+    for (int i=1; i<entries_h_1+1; i++){ //parto da 1 per non contare l'indice dell'underflow (che comunque indicherebbe un bin vuoto)
+        //arrivo a 502 per contare l'overflow
+        
+        // crea valori p_i e q_i=1-p_i per ogni tensione V_i = [0;Vmax]
+        V_histo[i] = h->GetBinCenter((Int_t)i);
+        p[i] = probability_p((h->GetBinContent((Int_t)i))/(h->GetEntries()), h->GetBinCenter((Int_t)i) , Vmax);
+        q[i] = probability_q(p[i]);
+        
+    }
     
     // crea R_s = sum(r_i, from N to s) e Q_s= prod(q_N to q_s) con s in[0;N]
+    create_R(p,q,h->GetEntries(),R,r);
+    create_Q(q,h->GetEntries(),Q,r);
+    
     
     // plotta p, q, R, Q
+    TGraph *gp = new TGraph(entries_h_1);
+    gp->SetName("gp");
+    TGraph *gq = new TGraph(entries_h_1);
+    gq->SetName("gq");
+    TGraph *gR = new TGraph(entries_h_1);
+    gR->SetName("gR");
+    TGraph *gQ = new TGraph(entries_h_1);
+    gQ->SetName("gQ");
     
-    // printa a schermo valore soglia scelta
     
+    for(Int_t d = 0; d<entries_h_1;d++){
+        
+        gp->SetPoint(d, V_histo[d], p[d]);
+        gq->SetPoint(d, V_histo[d], q[d]);
+        gR->SetPoint(d, V_histo[d], R[d]);
+        gQ->SetPoint(d, V_histo[d], Q[d]);
+
+    }
+    
+    
+ 
+    f->Write();
     return th ;
     
 }
@@ -56,7 +97,7 @@ Double_t get_max_V(TGraph *g){
 
 void fill_histo(TH1F *h, TGraph *g){
     
-    Double_t *X = g->GetX();
+    //Double_t *X = g->GetX();
     Double_t *Y = g->GetY();
     Int_t N = g->GetN();
     
@@ -83,12 +124,13 @@ Double_t probability_q(Double_t p_i){
 
 
 
-void create_r(Double_t *p, Double_t *q, Int_t N){
+void create_r(Double_t *p, Double_t *q, Int_t N, Double_t *r){
     
     for(int i=0;i<N;i++){
-        if (q[i]=0){
+        if (q[i]==0){
             cout<<"q_"<<i<<" = 0, fix it in search threshold\n";
-            exit(1);
+            r[i] = 1;
+            //exit(1);
         }
         r[i] = p[i]/q[i];
     }
@@ -101,7 +143,7 @@ void create_R(Double_t *p, Double_t *q, Int_t N, Double_t *R, Double_t *r){
     
     create_r(p,q,N,r);
     
-    R[N] = r[n];
+    R[N] = r[N];
     Double_t sum = r[N];
     
     for(int s=N-1;s>-1;s--){
@@ -117,51 +159,103 @@ void create_R(Double_t *p, Double_t *q, Int_t N, Double_t *R, Double_t *r){
 
 
 
-void create_Q(Double_t *q, Int_t N, Double_t *Q){
+void create_Q(Double_t *q, Int_t N, Double_t *Q, Double_t *r ){
     
     Q[N] = q[N];
     Double_t prod = q[N];
     
     for(int s=N-1;s<-1;s--){
         
-        prod = *= r[s];
+        prod *= r[s];
         Q[s] = prod;
         
     }
     
 }
-*/
+
+
+Double_t sigma_2_extimation(Double_t V, Double_t E_x,Double_t E_x_2,Double_t E_x_3){
+    Double_t sigma_2;
+    
+    sigma_2=((pow(V,3)*E_x) + (3*pow(V,2)*pow(E_x,2)) + ((pow(E_x,3)-E_x_3)*V))/(3*E_x_2);
+    
+    return sigma_2;
+}
 
 int factorial(int n){
     return (n == 1 || n == 0) ? 1 : factorial(n - 1) * n;
 }
 
-Double_t poisson(Double_t lambda, int k){
+Double_t probability(Double_t lambda, int k,Double_t alpha0, Double_t ct){
     
-    return (Double_t)(exp(-((double)lambda))*pow(((double)lambda),k)/(double)factorial(k));
+    Double_t a = (Double_t)(exp(-((double)lambda))*pow(((double)lambda),k)/(double)factorial(k));
+    
+    if(k==0){
+        a*=alpha0;
+    }
+    else if(k==1){
+        a*=1;
+    }
+    else{
+        a*=alpha(lambda,ct);
+    }
+    
+    //cout<<"N = "<<norm(lambda, alpha0, ct)<<"\n";
+    a = a/norm(lambda, alpha0, ct);
+    return a;
     
 }
 
-void generate_data(Double_t lambda, Double_t V_1,Double_t sigma_sgn, Double_t sigma_noise, Int_t N){
+Double_t norm(Double_t lambda, Double_t alpha0, Double_t ct){
+    
+    Double_t N = exp(-((double)lambda))*( alpha0 + lambda )+ (alpha(lambda,ct))*(1-exp(-((double)lambda))-(exp(-((double)lambda))*lambda));
+    
+    return N;
+}
+
+Double_t alpha(Double_t lambda,Double_t ct){
+    
+    Double_t e = (Double_t)exp(-((double)lambda));
+    Double_t a = (ct*e)/((1-e-e*lambda)*(1-ct));
+    
+    return a;
+    
+}
+
+
+TH1D generate_data(Double_t lambda, Double_t V_1,Double_t sigma_sgn, Double_t sigma_noise,Double_t alpha0, Double_t ct, Int_t N){
     
     TFile *f = new TFile("test_random_generate_data.root","RECREATE");
     // genera U[0, 1]
     int N_picchi = 10;
-    cout<<" average value "<<lambda*V_1;
+    cout<<" average value (if negligible noise ) "<<lambda*V_1<<"\n";
     Double_t sections_prob_value[N_picchi];
     Double_t sections_th[N_picchi];
     Int_t N_histo=500;
     int sections[N_picchi];
+    int sum = 0;
     
     TRandom3 *r1=new TRandom3();
-    Double_t r;
-    TH1F *h = new TH1F("h1","TRandom",N_histo,0,V_1*N_picchi);
+    Double_t r=0;
+    TH1D *h = new TH1D("h1","TRandom",N_histo,0,V_1*N_picchi);
+    
+    Int_t maxxx=0;
+    
+    Double_t normaliz=0;
+    for(int i=0; i<100; i++){
+        if(probability(lambda,i, alpha0, ct)<1e-20){cout<<"negligible prob , stop at "<<i<<" peak\n"; maxxx=(Int_t)i ;break;}
+        normaliz += probability(lambda,i, alpha0, ct);
+        cout<<"probability "<<i<<" "<<probability(lambda,i, alpha0, ct)<<"\n";
+    }
+    cout<<"normalization ----> "<<normaliz<<"\n";
+    
+    
     
     for(int i=0; i<N_picchi-1; i++){
         
-        sections_prob_value[i] = poisson(lambda,i);
+        sections_prob_value[i] = probability(lambda,i, alpha0, ct);
         if (i==0){
-            sections_prob_value[N_picchi-1] = poisson(lambda,N_picchi-1);
+            sections_prob_value[N_picchi-1] = probability(lambda,N_picchi-1,alpha0, ct);
             sections_th[N_picchi-1]=1;
             sections_th[0] = sections_prob_value[0];
             
@@ -186,7 +280,13 @@ void generate_data(Double_t lambda, Double_t V_1,Double_t sigma_sgn, Double_t si
             }
         }
     }
-    int sum = 0;
+    
+    Double_t conteggio=0;
+    for(int k=0;k<N_picchi;k++){
+        conteggio += sections[k];
+    }
+    cout<<"conteggio ---> "<< conteggio <<"\n";
+    
     if(sections[N_picchi-1]>N*sections_prob_value[N_picchi-1]*(1+0.05)){
         
         cout<<"\n\nwarning: too much signal in last gaussian function -> renormalization last peak\n";
@@ -199,9 +299,23 @@ void generate_data(Double_t lambda, Double_t V_1,Double_t sigma_sgn, Double_t si
         h->SetBinContent(N_histo+1,(Double_t)(N-sum));
         
     }
+    else{cout<<"no cut on peaks -> N=sum\n\n";sum=N;}
     
     Double_t sigma;
-    
+    /*
+    Double_t E_x=0;
+    Double_t E_x_2=0;
+    Double_t E_x_3=0;
+    Double_t Var_x=0;
+    Double_t k_var=0;
+    Double_t V_plus=0;
+    Double_t V_minus=0;
+    Double_t sigma_extim_plus=0;
+    Double_t sigma_extim_minus=0;
+    Double_t lambda_extim_plus=0;
+    Double_t lambda_extim_minus=0;
+    */
+    //Double_t conta=1;
     for(int i = 0; i<N_picchi;i++){
         
         if (i==0){
@@ -216,29 +330,118 @@ void generate_data(Double_t lambda, Double_t V_1,Double_t sigma_sgn, Double_t si
         cout<<"sections_prob_value"<<"["<<i<<"]"<< sections_prob_value[i]<<"\n";
         cout<<"sections_th"<<"["<<i<<"]"<< sections_th[i]<<"\n";
         
+        
+        
         for(int k = 0;k<sections[i];k++){
             
-            r=r1->Gaus(i*V_1,sigma);
+            r=0.0;
+            
+            if(i==0 || i==1){
+                r=r1->Gaus(i*V_1,sigma);
+            }
+            else{
+                for(int j=0;j<i;j++){
+                    r+=r1->Gaus(V_1,sigma);
+                }
+            }
+            
+            
             if(r<0){
                 k--;
             }
             else{
-                h->Fill((Float_t)r);
+                //cout<<"r_1 "<<r<<"\n";
+                h->Fill(r);
+                //E_x = (conta-1/conta)*E_x + (r/conta);
+                //E_x_2 = (conta-1/conta)*E_x_2 + (r*r/conta);
+                //E_x_3 = (conta-1/conta)*E_x_3 + (r*r*r/conta);
+                //conta+=1;
+                //cout<<"r_2 "<<r<<"\n";
             }
         }
     }
     
+    //E_x/=sum;
+    //E_x_2/=sum;
+    //E_x_3/=sum;
+    /*cout<<"conta "<<conta<<" sum "<<sum<<"\n";
+    
+    TGraph *g = new TGraph(N_histo);
+    g->SetName("g");
+    
+    Double_t V_d=0;
+    Double_t s =0;
+    
+    for(Int_t d = 0; d<N_histo*10;d++){
+    
+        V_d = ((V_1*N_picchi)/(N_histo*10))*d;
+        
+        s=sigma_2_extimation(V_d,E_x,E_x_2,E_x_3);
+        if (s>0){s= pow(s,0.5);}
+        else{s=0;}
+        
+        g->SetPoint(d, V_d ,s);
+                
+    }
+    */
+    TGraph *g = new TGraph(maxxx);
+    g->SetName("g");
+    Double_t s =0;
+    
+    for(Int_t d = 0; d<maxxx;d++){
+        
+        s+=probability(lambda, (int)d ,alpha0, ct);
+        g->SetPoint(d, (Double_t)d ,s);
+        
+    }
+    //////result Nan -> check it
+    /*
+    cout<<"E_x "<<E_x<<"\n";
+    cout<<"E_x_2 "<<E_x_2<<"\n";
+    cout<<"E_x_3 "<<E_x_3<<"\n";
+    
+    
+    Var_x=E_x_2 - (E_x*E_x);
+    k_var= ((E_x*E_x*E_x) - E_x_3) + (3*E_x_2*((Var_x/E_x)+E_x));
+    
+    cout<<"Var_x "<<Var_x<<"\n";
+    cout<<"k_var "<<k_var<<"\n\n";
+    
+    V_plus=(3*Var_x+pow((9*Var_x*Var_x-4*E_x*k_var),0.5))/(2*E_x);
+    V_minus=(3*Var_x-pow((9*Var_x*Var_x-4*E_x*k_var),0.5))/(2*E_x);
+    
+    sigma_extim_plus=V_plus*((Var_x/E_x)+E_x) - V_plus*V_plus ;
+    sigma_extim_minus= V_minus*((Var_x/E_x)+E_x) - V_minus*V_minus ;
+    lambda_extim_plus=E_x/V_plus;
+    lambda_extim_minus=E_x/V_minus;
+    
+    cout<<"V "<<V_1<<"\n";
+    cout<<"V_plus "<<V_plus<<"\n";
+    cout<<"V_minus "<<V_minus<<"\n\n";
+    
+    cout<<"sigma_sgn "<<sigma_sgn*sigma_sgn<<"\n";
+    cout<<"sigma_extim_plus "<<sigma_extim_plus<<"\n";
+    cout<<"sigma_extim_minus "<<sigma_extim_minus<<"\n\n";
+    
+    
+    cout<<"lambda "<<lambda<<"\n";
+    cout<<"lambda_extim_plus "<<lambda_extim_plus<<"\n";
+    cout<<"lambda_extim_minus "<<lambda_extim_minus<<"\n\n";
+     */
+    
+    g->Write();
     f->Write();
+    //f->Close();
     
     cout<<"END CREATE_DATA\n";
+    
+    return *h;
     
     // dividi in sezioni (prob di ogni picco) ; se x € sezione -> aumenta conteggio sezione
     
     // genera conteggi gaussiana = conteggi sezione (picco o rumore)
     
-    // mischia posizione picchi (vettore "tempi" -> shuffle -> associa picchi sezioni)
-    
-    //genera un documento da cui ripescare i dati senza simularli ogni volta
+    //ho generato direttamente l'histo salvato in test_random_generate_data.root
     
 }
 

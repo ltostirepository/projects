@@ -14,29 +14,30 @@
 
 using namespace std;
 
-/*
- Double_t Search_threshold();
 
- Double_t get_max_V(TGraph *g);
+Double_t Search_threshold(TH1D *h);
 
- void fill_histo(TH1F *h, TGraph *g);
+Double_t get_max_V(TGraph *g);
 
- Double_t probability_p(Double_t h_i, Double_t V_i, Double_t V_max);
+void fill_histo(TH1F *h, TGraph *g);
 
- Double_t probability_q(Double_t p_i);
+Double_t probability_p(Double_t h_i, Double_t V_i, Double_t V_max);
 
- void create_r(Double_t *p, Double_t *q, Int_t N);
+Double_t probability_q(Double_t p_i);
 
- void create_R(Double_t *p, Double_t *q, Int_t N, Double_t *R, Double_t *r);
+void create_r(Double_t *p, Double_t *q, Int_t N);
 
- void create_Q(Double_t *q, Int_t N, Double_t *Q);
+void create_R(Double_t *p, Double_t *q, Int_t N, Double_t *R, Double_t *r);
 
- void generate_data(Double_t Vmax);
-*/
+void create_Q(Double_t *q, Int_t N, Double_t *Q,Double_t *r);
 
+Double_t alpha(Double_t lambda,Double_t ct);
+
+Double_t sigma_2_extimation(Double_t V, Double_t E_x,Double_t E_x_2,Double_t E_x_3);
 int factorial(int n);
-Double_t poisson(Double_t lambda, int k);
-void generate_data(Double_t lambda, Double_t V_1,Double_t sigma_sgn, Double_t sigma_noise, Int_t N);
+Double_t probability(Double_t lambda, int k,Double_t alpha0, Double_t ct);
+Double_t norm(Double_t lambda, Double_t alpha0, Double_t ct);
+TH1D generate_data(Double_t lambda, Double_t V_1,Double_t sigma_sgn, Double_t sigma_noise, Double_t alpha0, Double_t ct, Int_t N);
 void testRandom(Int_t nrEvents=500000000);
 
 #endif

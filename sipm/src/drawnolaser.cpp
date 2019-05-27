@@ -14,10 +14,17 @@ int debug = 0;
 void drawnolaser( const  char* treefilename, int imin, int imax, bool print ,Double_t dt_shift){
     
     cout<<"........START TEST........\n";
-    
+    Double_t th_test=1;
     //testRandom(500000000);
-    generate_data(1,3.0 ,1.0, 3.0, 500000000);//lambda,V_1,sigma_sgn,sigma_noise,N
+    TFile *f111 = new TFile("test_threshold.root","RECREATE");
+    TH1D his = generate_data(0.1,0.3 ,0.1, 0.1, 10 ,0.3, 500000000);
     
+    his.Draw();
+    his.Write();
+    cout<<" his "<<&his<<"\n";
+    //TH1D *histo_rand = &his;//lambda,V_1,sigma_sgn,sigma_noise,alpha0,ct,N
+    th_test = Search_threshold(&his);
+    cout<<"th ----> "<<th_test<<"\n";
     exit(1);
     
     cout<<"........START PROGRAM........\n";
