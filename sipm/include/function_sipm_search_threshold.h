@@ -15,13 +15,13 @@
 using namespace std;
 
 
-Double_t Search_threshold(TH1D *h);
+Double_t Search_threshold(const  char* file);
 
 Double_t get_max_V(TGraph *g);
 
 void fill_histo(TH1F *h, TGraph *g);
 
-Double_t probability_p(Double_t h_i, Double_t V_i, Double_t V_max);
+Double_t probability_p(TH1D *h,Int_t i,Double_t h_i, Double_t V_i, Double_t V_max);
 
 Double_t probability_q(Double_t p_i);
 
@@ -37,7 +37,7 @@ Double_t sigma_2_extimation(Double_t V, Double_t E_x,Double_t E_x_2,Double_t E_x
 int factorial(int n);
 Double_t probability(Double_t lambda, int k,Double_t alpha0, Double_t ct);
 Double_t norm(Double_t lambda, Double_t alpha0, Double_t ct);
-TH1D generate_data(Double_t lambda, Double_t V_1,Double_t sigma_sgn, Double_t sigma_noise, Double_t alpha0, Double_t ct, Int_t N);
+void generate_data(Double_t lambda, Double_t V_1,Double_t sigma_sgn, Double_t sigma_noise, Double_t alpha0, Double_t ct, Int_t N);
 void testRandom(Int_t nrEvents=500000000);
 
 #endif

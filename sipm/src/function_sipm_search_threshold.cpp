@@ -10,24 +10,35 @@
 using namespace std;
 
 
-Double_t Search_threshold(TH1D *h){
+Double_t Search_threshold(const  char* file){
  
-    cout<<"in1\n";
-    Double_t th = 0;
     TFile *f = new TFile("test_threshold.root","RECREATE");
-    h->Write();
+    TFile A(file);
+    TH1D *h = (TH1D*)A.Get("h1");
+    
+    Double_t th = 0;
+    
     // definisci variabili dei punti successivi
     
-    cout<<"in2\n";
+    
     
  // ####### (per ora prendi direttamente l'histo) prendi grafico DLED e costruisci histo punti (no cerca picchi) escludi valori negativi e nulli
     Int_t entries_h=h->GetEntries();
     Int_t entries_h_1= 0;
     entries_h_1= entries_h +1;
     
-    cout<<"in3\n";
+    
+    Double_t p[501]; // imposta dim dall'histo
+    Double_t q[501]; // imposta dim dall'histo
+    Double_t r[501]; // imposta dim dall'histo
+    
+    Double_t R[501]; // imposta dim dall'histo
+    Double_t Q[501]; // imposta dim dall'histo
+    
+    Double_t V_histo[501]; // imposta dim dall'histo
+    Double_t Vmax = h->GetBinCenter(500);
     // costruisci funz prob h_i*(2/V_max^2)*V_i
-    Double_t p[entries_h_1]; // imposta dim dall'histo
+    /*Double_t p[entries_h_1]; // imposta dim dall'histo
     Double_t q[entries_h_1]; // imposta dim dall'histo
     Double_t r[entries_h_1]; // imposta dim dall'histo
     cout<<"in4\n";
@@ -36,45 +47,58 @@ Double_t Search_threshold(TH1D *h){
     cout<<"in5\n";
     Double_t V_histo[entries_h_1]; // imposta dim dall'histo
     Double_t Vmax = h->GetBinCenter(entries_h); //così V_max dipende dall'histo (devi scorrere il vettore e trovare il più grande utile)
-    cout<<"in\n";
-    for (int i=1; i<entries_h_1+1; i++){ //parto da 1 per non contare l'indice dell'underflow (che comunque indicherebbe un bin vuoto)
+    */
+    
+    //Double_t scale = 1.0/h->Integral();
+    //h->Scale(scale);// normalizzazione histo
+    for (int i=1; i<502; i++){ //parto da 1 per non contare l'indice dell'underflow (che comunque indicherebbe un bin vuoto)
         //arrivo a 502 per contare l'overflow
         
         // crea valori p_i e q_i=1-p_i per ogni tensione V_i = [0;Vmax]
         V_histo[i] = h->GetBinCenter((Int_t)i);
-        p[i] = probability_p((h->GetBinContent((Int_t)i))/(h->GetEntries()), h->GetBinCenter((Int_t)i) , Vmax);
+        p[i] = probability_p(h,(Int_t)i,h->GetBinContent((Int_t)i), h->GetBinCenter((Int_t)i) , Vmax);//TH1D *h,Int_t i, Double_t V_i, Double_t V_max
         q[i] = probability_q(p[i]);
         
     }
     
     // crea R_s = sum(r_i, from N to s) e Q_s= prod(q_N to q_s) con s in[0;N]
-    create_R(p,q,h->GetEntries(),R,r);
-    create_Q(q,h->GetEntries(),Q,r);
+    create_R(p,q,500,R,r);
+    //cout<<"erererer\n";
+    create_Q(q,500,Q,r);
     
     
     // plotta p, q, R, Q
-    TGraph *gp = new TGraph(entries_h_1);
+    TGraph *gp = new TGraph(501);
     gp->SetName("gp");
-    TGraph *gq = new TGraph(entries_h_1);
+    TGraph *gq = new TGraph(501);
     gq->SetName("gq");
-    TGraph *gR = new TGraph(entries_h_1);
+    TGraph *gR = new TGraph(501);
     gR->SetName("gR");
-    TGraph *gQ = new TGraph(entries_h_1);
+    TGraph *gQ = new TGraph(501);
     gQ->SetName("gQ");
+    TGraph *gRQ = new TGraph(501);
+    gRQ->SetName("gRQ");
     
     
-    for(Int_t d = 0; d<entries_h_1;d++){
+    for(Int_t d = 0; d<501;d++){
         
         gp->SetPoint(d, V_histo[d], p[d]);
         gq->SetPoint(d, V_histo[d], q[d]);
         gR->SetPoint(d, V_histo[d], R[d]);
         gQ->SetPoint(d, V_histo[d], Q[d]);
+        gRQ->SetPoint(d, V_histo[d], R[d]*Q[d]);
 
     }
     
     
  
     f->Write();
+    f->WriteTObject(h);
+    f->WriteTObject(gp);
+    f->WriteTObject(gq);
+    f->WriteTObject(gR);
+    f->WriteTObject(gQ);
+    f->WriteTObject(gRQ);
     return th ;
     
 }
@@ -109,9 +133,11 @@ void fill_histo(TH1F *h, TGraph *g){
 
 
 
-Double_t probability_p(Double_t h_i, Double_t V_i, Double_t V_max){
+Double_t probability_p(TH1D *h,Int_t i,Double_t h_i, Double_t V_i, Double_t V_max){
 
-    return h_i*(2/(V_max*V_max))*V_i ;    //<<<<<<<------ devo aggiungere il dV ? non sembra
+    double integral = h->Integral(i,501);
+    //return (integral*h_i*(2/(V_max*V_max))*V_i)/(h->GetEntries()) ;//<<<<<<<------ devo aggiungere il dV ? non sembra
+    return integral/(h->GetEntries());
 }
 
 
@@ -130,9 +156,11 @@ void create_r(Double_t *p, Double_t *q, Int_t N, Double_t *r){
         if (q[i]==0){
             cout<<"q_"<<i<<" = 0, fix it in search threshold\n";
             r[i] = 1;
+            q[i] = 0.1;
             //exit(1);
         }
-        r[i] = p[i]/q[i];
+        else{r[i] = p[i]/q[i];}
+        
     }
     
 }
@@ -164,9 +192,11 @@ void create_Q(Double_t *q, Int_t N, Double_t *Q, Double_t *r ){
     Q[N] = q[N];
     Double_t prod = q[N];
     
-    for(int s=N-1;s<-1;s--){
+    if (prod == 0 || q[N]==0 ){cout<<"AAAAHHHHHHHHHHHHH!!!!!\n";}
+    
+    for(int s=N-1;s>(-1);s--){
         
-        prod *= r[s];
+        prod *= q[s];
         Q[s] = prod;
         
     }
@@ -197,18 +227,22 @@ Double_t probability(Double_t lambda, int k,Double_t alpha0, Double_t ct){
         a*=1;
     }
     else{
-        a*=alpha(lambda,ct);
+        //a*=alpha(lambda,ct);
+        //cout<<"alpha "<<alpha(lambda,ct)<<"\n";
+        a*= (1+ct) ;
+        
     }
     
     //cout<<"N = "<<norm(lambda, alpha0, ct)<<"\n";
     a = a/norm(lambda, alpha0, ct);
+    
     return a;
     
 }
 
 Double_t norm(Double_t lambda, Double_t alpha0, Double_t ct){
     
-    Double_t N = exp(-((double)lambda))*( alpha0 + lambda )+ (alpha(lambda,ct))*(1-exp(-((double)lambda))-(exp(-((double)lambda))*lambda));
+    Double_t N = exp(-((double)lambda))*( alpha0 + lambda )+ (/*alpha(lambda,ct)*/(1+ct))*(1-exp(-((double)lambda))-(exp(-((double)lambda))*lambda));
     
     return N;
 }
@@ -223,7 +257,7 @@ Double_t alpha(Double_t lambda,Double_t ct){
 }
 
 
-TH1D generate_data(Double_t lambda, Double_t V_1,Double_t sigma_sgn, Double_t sigma_noise,Double_t alpha0, Double_t ct, Int_t N){
+void generate_data(Double_t lambda, Double_t V_1,Double_t sigma_sgn, Double_t sigma_noise,Double_t alpha0, Double_t ct, Int_t N){
     
     TFile *f = new TFile("test_random_generate_data.root","RECREATE");
     // genera U[0, 1]
@@ -238,6 +272,7 @@ TH1D generate_data(Double_t lambda, Double_t V_1,Double_t sigma_sgn, Double_t si
     TRandom3 *r1=new TRandom3();
     Double_t r=0;
     TH1D *h = new TH1D("h1","TRandom",N_histo,0,V_1*N_picchi);
+    
     
     Int_t maxxx=0;
     
@@ -336,12 +371,18 @@ TH1D generate_data(Double_t lambda, Double_t V_1,Double_t sigma_sgn, Double_t si
             
             r=0.0;
             
-            if(i==0 || i==1){
-                r=r1->Gaus(i*V_1,sigma);
+            if(i==0){
+                r=r1->Gaus(0,sigma);
+            }
+            else if(i==1){
+                r=r1->Gaus(V_1,sigma);
+                r+= r1->Gaus(0,sigma_noise);
+                
             }
             else{
                 for(int j=0;j<i;j++){
                     r+=r1->Gaus(V_1,sigma);
+                    r+= r1->Gaus(0,sigma_noise);
                 }
             }
             
@@ -432,10 +473,7 @@ TH1D generate_data(Double_t lambda, Double_t V_1,Double_t sigma_sgn, Double_t si
     g->Write();
     f->Write();
     //f->Close();
-    
     cout<<"END CREATE_DATA\n";
-    
-    return *h;
     
     // dividi in sezioni (prob di ogni picco) ; se x € sezione -> aumenta conteggio sezione
     
