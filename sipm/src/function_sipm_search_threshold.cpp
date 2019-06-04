@@ -4,7 +4,10 @@
 #include "TRandom.h"
 #include "TRandom2.h"
 #include "TRandom3.h"
-
+#include "TVirtualFFT.h"
+#include "TAxis.h"
+#include "TH1.h"
+#include "TArrayD.h"
 
 
 using namespace std;
@@ -15,6 +18,62 @@ Double_t Search_threshold(const  char* file){
     TFile *f = new TFile("test_threshold.root","RECREATE");
     TFile A(file);
     TH1D *h = (TH1D*)A.Get("h1");
+    TH1D *delta_h = new TH1D("delta_h","delta_h",1000,-10*(h->GetXaxis()->GetXmax()),10*(h->GetXaxis()->GetXmax()));
+    
+    TH1 *h_CF_MAG = 0;
+    TH1 *h_CF_PH = 0;
+    TH1 *h_CF_RE = 0;
+    TH1 *h_CF_IM = 0;
+    
+    TH1 *delta_h_CF_MAG = 0;
+    TH1 *delta_h_CF_PH = 0;
+    TH1 *delta_h_CF_RE = 0;
+    TH1 *delta_h_CF_IM = 0;
+    
+    Double_t rand1 = h->GetRandom();
+    Double_t rand2 = h->GetRandom();
+    for(int i=0;i<100000; i++){
+        
+        delta_h->Fill(rand2-rand1);
+        rand1 = rand2-rand1;
+        rand2 = h->GetRandom();
+        
+    }
+    
+    
+    TVirtualFFT::SetTransform(0);
+    h_CF_MAG = h->FFT(h_CF_MAG,"Mag R2C ES");
+    h_CF_PH = h->FFT(h_CF_PH,"PH R2C ES");
+    h_CF_RE = h->FFT(h_CF_RE,"RE R2C ES");
+    h_CF_IM = h->FFT(h_CF_IM,"IM R2C ES");
+    
+    ScaleXaxis(h_CF_MAG, Scale, (h->GetXaxis()->GetXmax() - h->GetXaxis()->GetXmin() ));
+    ScaleXaxis(h_CF_PH, Scale, (h->GetXaxis()->GetXmax() - h->GetXaxis()->GetXmin() ));
+    ScaleXaxis(h_CF_RE, Scale, (h->GetXaxis()->GetXmax() - h->GetXaxis()->GetXmin() ));
+    ScaleXaxis(h_CF_IM , Scale, (h->GetXaxis()->GetXmax() - h->GetXaxis()->GetXmin() ));
+    
+    
+    delta_h_CF_MAG = delta_h->FFT(delta_h_CF_MAG,"Mag R2C ES");
+    delta_h_CF_PH = delta_h->FFT(delta_h_CF_PH,"PH R2C ES");
+    delta_h_CF_RE = delta_h->FFT(delta_h_CF_RE,"RE R2C ES");
+    delta_h_CF_IM = delta_h->FFT(delta_h_CF_IM,"IM R2C ES");
+    
+    ScaleXaxis(delta_h_CF_MAG, Scale, (delta_h->GetXaxis()->GetXmax() - delta_h->GetXaxis()->GetXmin() ));
+    ScaleXaxis(delta_h_CF_PH, Scale, (delta_h->GetXaxis()->GetXmax() - delta_h->GetXaxis()->GetXmin() ));
+    ScaleXaxis(delta_h_CF_RE, Scale, (delta_h->GetXaxis()->GetXmax() - delta_h->GetXaxis()->GetXmin() ));
+    ScaleXaxis(delta_h_CF_IM, Scale, (delta_h->GetXaxis()->GetXmax() - delta_h->GetXaxis()->GetXmin() ));
+    
+    ///metti scale Y axis
+   
+    h_CF_MAG->SetName("h_MAG");
+    h_CF_PH->SetName("h_PH");
+    h_CF_RE->SetName("h_RE");
+    h_CF_IM->SetName("h_IM");
+    
+    delta_h_CF_MAG->SetName("delta_h_MAG");
+    delta_h_CF_PH->SetName("delta_h_PH");
+    delta_h_CF_RE->SetName("delta_h_RE");
+    delta_h_CF_IM->SetName("delta_h_IM");
     
     Double_t th = 0;
     
@@ -31,6 +90,7 @@ Double_t Search_threshold(const  char* file){
     Double_t p[501]; // imposta dim dall'histo
     Double_t q[501]; // imposta dim dall'histo
     Double_t r[501]; // imposta dim dall'histo
+    Double_t e[501];
     
     Double_t R[501]; // imposta dim dall'histo
     Double_t Q[501]; // imposta dim dall'histo
@@ -58,11 +118,12 @@ Double_t Search_threshold(const  char* file){
         V_histo[i] = h->GetBinCenter((Int_t)i);
         p[i] = probability_p(h,(Int_t)i,h->GetBinContent((Int_t)i), h->GetBinCenter((Int_t)i) , Vmax);//TH1D *h,Int_t i, Double_t V_i, Double_t V_max
         q[i] = probability_q(p[i]);
+        e[i] = payoff(h,i,h->GetBinContent((Int_t)i),h->GetBinCenter((Int_t)i),Vmax);
         
     }
     
     // crea R_s = sum(r_i, from N to s) e Q_s= prod(q_N to q_s) con s in[0;N]
-    create_R(p,q,500,R,r);
+    create_R(p,q,500,R,r,e);
     //cout<<"erererer\n";
     create_Q(q,500,Q,r);
     
@@ -78,6 +139,8 @@ Double_t Search_threshold(const  char* file){
     gQ->SetName("gQ");
     TGraph *gRQ = new TGraph(501);
     gRQ->SetName("gRQ");
+    TGraph *ge = new TGraph(501);
+    ge->SetName("ge");
     
     
     for(Int_t d = 0; d<501;d++){
@@ -87,18 +150,32 @@ Double_t Search_threshold(const  char* file){
         gR->SetPoint(d, V_histo[d], R[d]);
         gQ->SetPoint(d, V_histo[d], Q[d]);
         gRQ->SetPoint(d, V_histo[d], R[d]*Q[d]);
+        ge->SetPoint(d, V_histo[d], e[d]);
 
     }
     
     
  
     f->Write();
+    f->WriteTObject(delta_h);
     f->WriteTObject(h);
     f->WriteTObject(gp);
     f->WriteTObject(gq);
     f->WriteTObject(gR);
     f->WriteTObject(gQ);
     f->WriteTObject(gRQ);
+    f->WriteTObject(ge);
+    
+    f->WriteTObject(h_CF_MAG);
+    f->WriteTObject(h_CF_PH);
+    f->WriteTObject(h_CF_RE);
+    
+    f->WriteTObject(h_CF_IM);
+    f->WriteTObject(delta_h_CF_MAG);
+    f->WriteTObject(delta_h_CF_PH);
+    f->WriteTObject(delta_h_CF_RE);
+    f->WriteTObject(delta_h_CF_IM);
+    
     return th ;
     
 }
@@ -131,7 +208,29 @@ void fill_histo(TH1F *h, TGraph *g){
     }
 }
 
-
+Double_t payoff(TH1D *h,Int_t i,Double_t h_i, Double_t V_i, Double_t V_max){
+    
+    Double_t a;
+    Double_t b;
+    Double_t b1;
+    
+    
+    b=h->Integral(i,501)/(h->GetEntries());
+    b1=h->Integral(i+1,501)/(h->GetEntries());
+    
+    
+    if(i<500){
+        if (b1 >=(b*(1-probability_p(h,i+1,h_i,V_i,V_max)))){
+            a = 1;
+        }
+        else{a=0.5;}
+    }
+    else{a=0; cout<<"indice troppo alto\n";}
+    return 1;//(b+(1-b1))/2;
+    
+    //return h->Integral(1,i)/(h->GetEntries());
+    
+}
 
 Double_t probability_p(TH1D *h,Int_t i,Double_t h_i, Double_t V_i, Double_t V_max){
 
@@ -167,7 +266,7 @@ void create_r(Double_t *p, Double_t *q, Int_t N, Double_t *r){
 
 
 
-void create_R(Double_t *p, Double_t *q, Int_t N, Double_t *R, Double_t *r){
+void create_R(Double_t *p, Double_t *q, Int_t N, Double_t *R, Double_t *r, Double_t *e ){
     
     create_r(p,q,N,r);
     
@@ -176,7 +275,7 @@ void create_R(Double_t *p, Double_t *q, Int_t N, Double_t *R, Double_t *r){
     
     for(int s=N-1;s>-1;s--){
         
-        sum += r[s];
+        sum += r[s]*e[s];
         R[s] = sum;
     
     }
@@ -513,3 +612,63 @@ void testRandom(Int_t N) {
     
     cout<<"END TEST_RANDOM\n";
 }
+
+
+
+
+
+Double_t Scale(Double_t y, Double_t N)
+{
+    Double_t v;
+    v =  y/N; // "linear scaling" function example
+    return v;
+}
+
+
+
+void ScaleAxis(TAxis *a, Double_t (*Scale)(Double_t,Double_t), Double_t N)
+{
+    if (!a) return; // just a precaution
+    if (a->GetXbins()->GetSize())
+    {
+        // an axis with variable bins
+        // note: bins must remain in increasing order, hence the "Scale"
+        // function must be strictly (monotonically) increasing
+        TArrayD X(*(a->GetXbins()));
+        for(Int_t i = 0; i < X.GetSize(); i++) X[i] = Scale(X[i],N);
+        a->Set((X.GetSize() - 1), X.GetArray()); // new Xbins
+    }
+    else
+    {
+        // an axis with fix bins
+        // note: we modify Xmin and Xmax only, hence the "Scale" function
+        // must be linear (and Xmax must remain greater than Xmin)
+        a->Set( a->GetNbins(),
+               Scale(a->GetXmin(),N), // new Xmin
+               Scale(a->GetXmax(),N)); // new Xmax
+    }
+    return;
+}
+
+void ScaleXaxis(TH1 *h, Double_t (*Scale)(Double_t),Double_t N)
+{
+    if (!h) return; // just a precaution
+    ScaleAxis(h->GetXaxis(), Scale,N);
+    return;
+}
+
+void ScaleYaxis(TH1 *h, Double_t (*Scale)(Double_t))
+{
+    if (!h) return; // just a precaution
+    Double_t N = h->GetXaxis()->GetNbins() ;
+    ScaleAxis(h->GetYaxis(), Scale, pow(N,0.5));
+    return;
+}
+
+
+
+
+
+
+
+

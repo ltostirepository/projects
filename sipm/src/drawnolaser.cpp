@@ -18,7 +18,7 @@ void drawnolaser( const  char* treefilename, int imin, int imax, bool print ,Dou
     //testRandom(500000000);
     const  char* file = "test_random_generate_data.root";
     
-    generate_data(0.1, 3 ,0.1, 0.1 , 1,0, 500000000);//Double_t lambda, Double_t V_1,Double_t sigma_sgn, Double_t sigma_noise,Double_t alpha0, Double_t ct, Int_t N
+    generate_data(0.1, 0.3 ,0.1, 0.1 , 1,0, 500000000);//Double_t lambda, Double_t V_1,Double_t sigma_sgn, Double_t sigma_noise,Double_t alpha0, Double_t ct, Int_t N
     
     
     
